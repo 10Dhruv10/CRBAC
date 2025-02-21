@@ -2,25 +2,65 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-<h2>Faculty Dashboard</h2>
-<div class="row">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-body">
-                <h3>Add New Student</h3>
-                <form method="post">
-                    {% csrf_token %}
-                    {{ form|crispy }}
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" name="email" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">First Name</label>
-                        <input type="text" name="first_name" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Last Name</label>
-                        <input type="text" name="last_name" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title">Welcome, {{ user_full_name }}</h2>
+                    <p class="card-text">Department: {{ department }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h3>Add New Student</h3>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">First Name</label>
+                            <input type="text" name="first_name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" name="last_name" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Student</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h3>My Students</h3>
+                    {% if students %}
+                        <div class="list-group">
+                        {% for student in students %}
+                            <div class="list-group-item">
+                                <h5>{{ student.user.get_full_name }}</h5>
+                                <p>Roll Number: {{ student.roll_number }}</p>
+                                <p>Semester: {{ student.semester }}</p>
+                                <small class="text-muted">Email: {{ student.user.email }}</small>
+                            </div>
+                        {% endfor %}
+                        </div>
+                    {% else %}
+                        <p>No students added yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
