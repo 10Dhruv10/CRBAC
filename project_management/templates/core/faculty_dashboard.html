@@ -1,40 +1,61 @@
-
 {% extends 'core/base.html' %}
 {% load crispy_forms_tags %}
 
 {% block content %}
-<div class="container">
+<div class="container mt-4">
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-6 mx-auto">
             <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Create Student Account</h3>
+                </div>
                 <div class="card-body">
-                    <h3>Create Student Account</h3>
                     <form method="post">
                         {% csrf_token %}
-                        {{ form|crispy }}
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
                         <button type="submit" class="btn btn-primary">Create Student Account</button>
                     </form>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-6">
-            <div class="card">
+            {% if students %}
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h3 class="mb-0">Student Accounts</h3>
+                </div>
                 <div class="card-body">
-                    <h3>Student Accounts</h3>
-                    {% if students %}
-                        <div class="list-group">
-                        {% for student in students %}
-                            <div class="list-group-item">
-                                <h5>Username: {{ student.user.username }}</h5>
-                            </div>
-                        {% endfor %}
-                        </div>
-                    {% else %}
-                        <p>No students added yet.</p>
-                    {% endif %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Date Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in students %}
+                                <tr>
+                                    <td>{{ student.user.username }}</td>
+                                    <td>{{ student.user.date_joined|date:"F d, Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
+            {% else %}
+            <div class="alert alert-info mt-4" role="alert">
+                No student accounts created yet.
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

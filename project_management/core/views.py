@@ -47,64 +47,68 @@ def dashboard(request):
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect('home')
-
+    
+    
 from django.contrib.auth import logout
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.contrib import messages
 from .models import Faculty, Student, Project
-from .forms import StudentCreationForm, ProjectForm
+from .forms import StudentCreationForm
 
 @login_required
 def faculty_dashboard(request):
+    # Check if user is faculty
     if not hasattr(request.user, 'faculty'):
         messages.error(request, "You don't have faculty permissions.")
         return redirect('home')
     
     faculty = request.user.faculty
     students = Student.objects.filter(faculty=faculty)
+    form = StudentCreationForm()  # Initialize the form
     
     if request.method == 'POST':
         form = StudentCreationForm(request.POST)
         if form.is_valid():
             try:
+                # Get form data
                 username = form.cleaned_data['username']
                 password = form.cleaned_data['password']
                 
-                # Check if username already exists
+                # Check if username exists
                 if User.objects.filter(username=username).exists():
                     messages.error(request, "This username is already taken.")
                     return redirect('dashboard')
                 
-                # Create user
+                # Create new user
                 user = User.objects.create_user(
                     username=username,
                     password=password
                 )
                 
-                # Create student
-                student = Student.objects.create(
+                # Create student profile
+                Student.objects.create(
                     user=user,
                     faculty=faculty
                 )
                 
-                messages.success(
-                    request, 
-                    f"Student account created successfully! Username: {username}"
-                )
+                # Add to student group
+                student_group, _ = Group.objects.get_or_create(name='Student')
+                user.groups.add(student_group)
+                
+                messages.success(request, f"Student account created successfully! Username: {username}")
                 return redirect('dashboard')
+                
             except Exception as e:
-                messages.error(request, f"Error creating student: {str(e)}")
+                messages.error(request, f"Error creating student account: {str(e)}")
                 return redirect('dashboard')
-    else:
-        form = StudentCreationForm()
     
     context = {
         'form': form,
         'students': students,
-        'faculty': faculty,
     }
+    
     return render(request, 'core/faculty_dashboard.html', context)
 
 @login_required
