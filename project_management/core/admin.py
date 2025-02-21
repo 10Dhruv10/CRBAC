@@ -15,29 +15,40 @@ class CustomUserAdmin(UserAdmin):
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 
-@admin.register(Faculty)
-class FacultyAdmin(admin.ModelAdmin):
-    list_display = ('user', 'department', 'phone')
-    search_fields = ('user__first_name', 'user__last_name', 'department')
-
-    def save_model(self, request, obj, form, change):
-        if not change:  # Only for new faculty members
-            # Make sure the user is active
-            obj.user.is_active = True
-            obj.user.save()
-        super().save_model(request, obj, form, change)
-
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
 from .models import Faculty, Student, Project
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ('user', 'faculty')
+    list_display = ('get_username', 'faculty', 'get_date_joined')
     list_filter = ('faculty',)
     search_fields = ('user__username',)
 
+    def get_username(self, obj):
+        return obj.user.username
+    get_username.short_description = 'Username'
+    
+    def get_date_joined(self, obj):
+        return obj.user.date_joined
+    get_date_joined.short_description = 'Date Joined'
+
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ('title', 'student', 'created_at')
+    list_display = ('get_student_username', 'description', 'created_at')
     list_filter = ('student__faculty', 'created_at')
-    search_fields = ('title', 'description')
+    search_fields = ('student__user__username', 'description')
+
+    def get_student_username(self, obj):
+        return obj.student.user.username
+    get_student_username.short_description = 'Student'
+
+@admin.register(Faculty)
+class FacultyAdmin(admin.ModelAdmin):
+    list_display = ('get_username', 'department', 'phone')
+    search_fields = ('user__username', 'department')
+
+    def get_username(self, obj):
+        return obj.user.username
+    get_username.short_description = 'Username'
