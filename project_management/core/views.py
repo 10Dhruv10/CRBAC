@@ -1,54 +1,3 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.contrib import messages
-from .models import Faculty, Student, Project
-from .forms import ProjectForm
-from django.contrib.auth.models import Group
-
-def home(request):
-    return render(request, 'core/home.html')
-
-
-from django.contrib.auth import logout
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from .models import Faculty, Student, Project
-from .forms import ProjectForm
-
-def logout_view(request):
-    # Remove the comma after logout(request)
-    logout(request)
-    messages.success(request, "Successfully logged out!")
-    return redirect('home')
-
-@login_required
-def dashboard(request):
-    try:
-        # Check if user is faculty
-        faculty = Faculty.objects.filter(user=request.user).first()
-        if faculty:
-            # Add user information to context
-            context = {
-                'faculty': faculty,
-                'user_full_name': f"{request.user.first_name} {request.user.last_name}",
-                'department': faculty.department
-            }
-            return render(request, 'core/faculty_dashboard.html', context)
-        
-        # Check if user is student
-        student = Student.objects.filter(user=request.user).first()
-        if student:
-            return student_dashboard(request)
-        
-        messages.error(request, "You don't have the required permissions. Please contact admin.")
-        return redirect('home')
-    except Exception as e:
-        messages.error(request, f"An error occurred: {str(e)}")
-        return redirect('home')
-    
-    
 from django.contrib.auth import logout
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -56,6 +5,24 @@ from django.contrib.auth.models import User, Group
 from django.contrib import messages
 from .models import Faculty, Student, Project
 
+@login_required
+def home(request):
+    return render(request, 'core/home.html')
+
+@login_required
+def dashboard(request):
+    if hasattr(request.user, 'faculty'):
+        return faculty_dashboard(request)
+    elif hasattr(request.user, 'student'):
+        return student_dashboard(request)
+    else:
+        messages.error(request, "Account type not recognized.")
+        return redirect('home')
+def logout_view(request):
+    # Remove the comma after logout(request)
+    logout(request)
+    messages.success(request, "Successfully logged out!")
+    return redirect('home')
 @login_required
 def faculty_dashboard(request):
     if not hasattr(request.user, 'faculty'):
@@ -72,42 +39,44 @@ def faculty_dashboard(request):
         if not username or not password:
             messages.error(request, "Both username and password are required.")
             return redirect('dashboard')
-            
+        
         try:
-            # Check if username already exists
+            # Check if username exists
             if User.objects.filter(username=username).exists():
-                messages.error(request, "This username is already taken.")
+                messages.error(request, "Username already exists.")
                 return redirect('dashboard')
             
-            # Create user with provided username and password
+            # Create the user account
             user = User.objects.create_user(
                 username=username,
                 password=password,
-                is_active=True  # Make sure the user is active
+                is_active=True  # Ensure the account is active
             )
             
-            # Create student and link to faculty
+            # Create the student object
             student = Student.objects.create(
                 user=user,
                 faculty=faculty
             )
             
-            # Add user to Student group
+            # Add to student group
             student_group, _ = Group.objects.get_or_create(name='Student')
             user.groups.add(student_group)
+            user.save()
             
-            messages.success(request, f"Student account created successfully! Username: {username}")
-            return redirect('dashboard')
+            messages.success(request, f"Student account '{username}' created successfully!")
             
         except Exception as e:
-            messages.error(request, f"Error creating student: {str(e)}")
-            return redirect('dashboard')
+            print(f"Error creating student: {str(e)}")  # For debugging
+            messages.error(request, "Error creating student account.")
+            if user:  # If user was created but student creation failed
+                user.delete()  # Clean up the user account
+                
+        return redirect('dashboard')
     
-    context = {
-        'students': students,
-        'faculty': faculty,
-    }
-    return render(request, 'core/faculty_dashboard.html', context)
+    return render(request, 'core/faculty_dashboard.html', {
+        'students': students
+    })
 
 @login_required
 def student_dashboard(request):
@@ -129,8 +98,11 @@ def student_dashboard(request):
                 video=video
             )
             messages.success(request, "Project added successfully!")
-            return redirect('dashboard')
         else:
             messages.error(request, "Both description and video are required.")
+        
+        return redirect('dashboard')
     
-    return render(request, 'core/student_dashboard.html', {'projects': projects})
+    return render(request, 'core/student_dashboard.html', {
+        'projects': projects
+    })

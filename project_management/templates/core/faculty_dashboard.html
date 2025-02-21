@@ -36,14 +36,12 @@
                             <thead>
                                 <tr>
                                     <th>Username</th>
-                                    <th>Date Created</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for student in students %}
                                 <tr>
                                     <td>{{ student.user.username }}</td>
-                                    <td>{{ student.user.date_joined|date:"F d, Y" }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
