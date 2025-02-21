@@ -3,43 +3,19 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from .models import Faculty, Student, Project
-from .forms import StudentRegistrationForm, ProjectForm
+from .forms import ProjectForm
 from django.contrib.auth.models import Group
 
 def home(request):
     return render(request, 'core/home.html')
 
 
-@login_required
-def student_dashboard(request):
-    if not hasattr(request.user, 'student'):
-        messages.error(request, "You don't have student permissions.")
-        return redirect('home')
-    
-    if request.method == 'POST':
-        form = ProjectForm(request.POST, request.FILES)
-        if form.is_valid():
-            project = form.save(commit=False)
-            project.student = request.user.student
-            project.save()
-            messages.success(request, "Project added successfully!")
-            return redirect('dashboard')
-    else:
-        form = ProjectForm()
-    
-    projects = Project.objects.filter(student=request.user.student)
-    return render(request, 'core/student_dashboard.html', {
-        'form': form,
-        'projects': projects
-    })
-    
-
 from django.contrib.auth import logout
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Faculty, Student, Project
-from .forms import StudentRegistrationForm, ProjectForm
+from .forms import ProjectForm
 
 def logout_view(request):
     # Remove the comma after logout(request)
@@ -78,7 +54,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from .models import Faculty, Student, Project
-from .forms import StudentRegistrationForm, ProjectForm
+from .forms import StudentCreationForm, ProjectForm
 
 @login_required
 def faculty_dashboard(request):
@@ -90,56 +66,66 @@ def faculty_dashboard(request):
     students = Student.objects.filter(faculty=faculty)
     
     if request.method == 'POST':
-        # Get the student form data
-        form = StudentRegistrationForm(request.POST)
-        email = request.POST.get('email')
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        
+        form = StudentCreationForm(request.POST)
         if form.is_valid():
             try:
-                # Create the user first
-                import uuid
-                temp_password = str(uuid.uuid4())[:8]
+                username = form.cleaned_data['username']
+                password = form.cleaned_data['password']
                 
-                # Check if user already exists
-                user, created = User.objects.get_or_create(
-                    username=email,
-                    defaults={
-                        'email': email,
-                        'first_name': first_name,
-                        'last_name': last_name,
-                        'is_active': True
-                    }
+                # Check if username already exists
+                if User.objects.filter(username=username).exists():
+                    messages.error(request, "This username is already taken.")
+                    return redirect('dashboard')
+                
+                # Create user
+                user = User.objects.create_user(
+                    username=username,
+                    password=password
                 )
                 
-                if created:
-                    user.set_password(temp_password)
-                    user.save()
-                
-                # Now create the student
-                student = form.save(commit=False)
-                student.user = user
-                student.faculty = faculty
-                student.save()
+                # Create student
+                student = Student.objects.create(
+                    user=user,
+                    faculty=faculty
+                )
                 
                 messages.success(
                     request, 
-                    f"Student {first_name} {last_name} has been added successfully! "
-                    f"Their login email is {email} and temporary password is: {temp_password}"
+                    f"Student account created successfully! Username: {username}"
                 )
                 return redirect('dashboard')
             except Exception as e:
                 messages.error(request, f"Error creating student: {str(e)}")
                 return redirect('dashboard')
     else:
-        form = StudentRegistrationForm()
+        form = StudentCreationForm()
     
     context = {
         'form': form,
         'students': students,
         'faculty': faculty,
-        'user_full_name': f"{request.user.first_name} {request.user.last_name}",
-        'department': faculty.department
     }
     return render(request, 'core/faculty_dashboard.html', context)
+
+@login_required
+def student_dashboard(request):
+    if not hasattr(request.user, 'student'):
+        messages.error(request, "You don't have student permissions.")
+        return redirect('home')
+    
+    if request.method == 'POST':
+        form = ProjectForm(request.POST, request.FILES)
+        if form.is_valid():
+            project = form.save(commit=False)
+            project.student = request.user.student
+            project.save()
+            messages.success(request, "Project added successfully!")
+            return redirect('dashboard')
+    else:
+        form = ProjectForm()
+    
+    projects = Project.objects.filter(student=request.user.student)
+    return render(request, 'core/student_dashboard.html', {
+        'form': form,
+        'projects': projects
+    })

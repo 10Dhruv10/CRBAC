@@ -28,22 +28,16 @@ class FacultyAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User
 from .models import Faculty, Student, Project
 
+@admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ('roll_number', 'get_full_name', 'faculty', 'semester')
-    list_filter = ('faculty', 'semester')
-    search_fields = ('roll_number', 'user__first_name', 'user__last_name', 'user__email')
-    
-    def get_full_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.last_name}"
-    get_full_name.short_description = 'Student Name'
+    list_display = ('user', 'faculty')
+    list_filter = ('faculty',)
+    search_fields = ('user__username',)
 
-admin.site.register(Student, StudentAdmin)
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ('title', 'student', 'created_at', 'updated_at')
-    list_filter = ('created_at', 'student__faculty')
-    search_fields = ('title', 'description', 'student__user__first_name')
+    list_display = ('title', 'student', 'created_at')
+    list_filter = ('student__faculty', 'created_at')
+    search_fields = ('title', 'description')
