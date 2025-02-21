@@ -29,15 +29,21 @@ def create_faculty_permissions(sender, instance, created, **kwargs):
             instance.user.is_active = True
             instance.user.save()
             
+from django.db import models
+from django.contrib.auth.models import User
+
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE)
+    faculty = models.ForeignKey('Faculty', on_delete=models.CASCADE)
     roll_number = models.CharField(max_length=20, unique=True)
     semester = models.IntegerField()
 
     def __str__(self):
-        return f"{self.user.first_name} {self.user.last_name} - {self.roll_number}"
+        return f"{self.user.get_full_name()} - {self.roll_number}"
 
+    class Meta:
+        ordering = ['roll_number']
+        
 class Project(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
