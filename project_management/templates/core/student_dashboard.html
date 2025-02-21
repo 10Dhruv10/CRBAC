@@ -1,0 +1,48 @@
+{% extends 'core/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<h2>Student Dashboard</h2>
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h3>Add New Project</h3>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <button type="submit" class="btn btn-primary">Submit Project</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h3>My Projects</h3>
+                {% if projects %}
+                    <div class="list-group">
+                    {% for project in projects %}
+                        <div class="list-group-item">
+                            <h5>{{ project.title }}</h5>
+                            <p>{{ project.description|truncatewords:30 }}</p>
+                            <small class="text-muted">Created: {{ project.created_at|date:"F d, Y" }}</small>
+                            {% if project.video %}
+                                <div class="mt-2">
+                                    <video width="100%" controls>
+                                        <source src="{{ project.video.url }}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    </div>
+                {% else %}
+                    <p>No projects added yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
