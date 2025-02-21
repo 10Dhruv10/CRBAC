@@ -1,5 +1,7 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class Faculty(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -12,6 +14,21 @@ class Faculty(models.Model):
     class Meta:
         verbose_name_plural = "Faculties"
 
+# Add this signal to automatically set up faculty permissions
+@receiver(post_save, sender=Faculty)
+def create_faculty_permissions(sender, instance, created, **kwargs):
+    if created:
+        # Create or get faculty group
+        faculty_group, created = Group.objects.get_or_create(name='Faculty')
+        
+        # Add user to faculty group
+        instance.user.groups.add(faculty_group)
+        
+        # Make sure the user is active
+        if not instance.user.is_active:
+            instance.user.is_active = True
+            instance.user.save()
+            
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE)

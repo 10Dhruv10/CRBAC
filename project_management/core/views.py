@@ -82,3 +82,29 @@ def student_dashboard(request):
         'form': form,
         'projects': projects
     })
+    
+
+# Add this new logout view
+def logout_view(request):
+    logout(request)
+    return redirect('home')
+
+# Modify your dashboard view to properly check faculty permissions
+@login_required
+def dashboard(request):
+    try:
+        # Check if user is faculty
+        faculty = Faculty.objects.filter(user=request.user).first()
+        if faculty:
+            return faculty_dashboard(request)
+        
+        # Check if user is student
+        student = Student.objects.filter(user=request.user).first()
+        if student:
+            return student_dashboard(request)
+        
+        messages.error(request, "You don't have the required permissions. Please contact admin.")
+        return redirect('home')
+    except Exception as e:
+        messages.error(request, "An error occurred. Please contact admin.")
+        return redirect('home')
