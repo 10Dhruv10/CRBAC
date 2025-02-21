@@ -22,6 +22,7 @@ class Student(models.Model):
         return self.user.username
 
 class Project(models.Model):
+    title = models.CharField(max_length=255)
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='projects')
     description = models.TextField()
     video = models.FileField(upload_to='project_videos/')
@@ -29,8 +30,7 @@ class Project(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Project by {self.student.user.username}"
-
+        return f"{self.title} - {self.student.user.username}"
 # Signal to ensure student group assignment
 @receiver(post_save, sender=Student)
 def create_student_group(sender, instance, created, **kwargs):

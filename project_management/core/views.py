@@ -77,7 +77,6 @@ def faculty_dashboard(request):
     return render(request, 'core/faculty_dashboard.html', {
         'students': students
     })
-
 @login_required
 def student_dashboard(request):
     if not hasattr(request.user, 'student'):
@@ -85,23 +84,32 @@ def student_dashboard(request):
         return redirect('home')
     
     student = request.user.student
-    projects = Project.objects.filter(student=student)
+    projects = Project.objects.filter(student=student).order_by('-created_at')
     
     if request.method == 'POST':
-        description = request.POST.get('description')
-        video = request.FILES.get('video')
-        
-        if description and video:
+        try:
+            title = request.POST.get('title')
+            description = request.POST.get('description')
+            video = request.FILES.get('video')
+            
+            if not title or not description or not video:
+                messages.error(request, "Title, description and video are all required.")
+                return redirect('dashboard')
+            
+            # Create new project
             Project.objects.create(
                 student=student,
+                title=title,
                 description=description,
                 video=video
             )
-            messages.success(request, "Project added successfully!")
-        else:
-            messages.error(request, "Both description and video are required.")
-        
-        return redirect('dashboard')
+            
+            messages.success(request, "Project uploaded successfully!")
+            return redirect('dashboard')
+            
+        except Exception as e:
+            messages.error(request, f"Error uploading project: {str(e)}")
+            return redirect('dashboard')
     
     return render(request, 'core/student_dashboard.html', {
         'projects': projects
