@@ -1,31 +1,69 @@
 {% extends 'core/base.html' %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-8 text-center">
-            <h1 class="mb-4">Welcome to Project Management System</h1>
-            <div class="row mt-5">
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Login</h5>
-                            <p class="card-text">Access your account to manage projects</p>
-                            <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
-                        </div>
-                    </div>
+        <div class="col-md-10 text-center">
+            <h1 class="display-4 mb-4">Welcome to Project Management System</h1>
+            <p class="lead mb-5">Explore student projects from different departments</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-body text-center">
+                    <h2 class="card-title">Browse Projects by Department</h2>
+                    <p class="card-text">View all the amazing projects created by our students</p>
+                    <a href="{% url 'department_selection' %}" class="btn btn-primary btn-lg">
+                        Browse Projects
+                    </a>
                 </div>
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Browse as Guest</h5>
-                            <p class="card-text">View projects by department</p>
-                            <a href="{% url 'department_selection' %}" class="btn btn-secondary">Continue as Guest</a>
-                        </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <h4>Are you a Student or Faculty member?</h4>
+                        <p class="text-muted">Access your account to manage projects</p>
+                    </div>
+                    <div class="text-center">
+                        <a href="{% url 'login' %}" class="btn btn-outline-secondary">
+                            Login to Your Account
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .btn-lg {
+        padding: 15px 30px;
+        font-size: 1.2rem;
+    }
+    .card {
+        border: none;
+        border-radius: 15px;
+        transition: transform 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .shadow-lg {
+        box-shadow: 0 1rem 3rem rgba(0,0,0,.175)!important;
+    }
+    .display-4 {
+        font-weight: bold;
+        color: #2c3e50;
+    }
+    .lead {
+        color: #7f8c8d;
+    }
+</style>
 {% endblock %}
