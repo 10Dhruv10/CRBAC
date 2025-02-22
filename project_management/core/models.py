@@ -4,15 +4,23 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 class Faculty(models.Model):
+    DEPARTMENT_CHOICES = [
+        ('COMP', 'Computer Engineering'),
+        ('IT', 'Information Technology'),
+        ('ENTC', 'Electronics & Telecommunication'),
+        ('MECH', 'Mechanical Engineering'),
+        ('ARE', 'Authomation & Robotics Engineering'),
+    ]
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    department = models.CharField(max_length=100)
+    department = models.CharField(max_length=100, choices=DEPARTMENT_CHOICES)
     phone = models.CharField(max_length=15)
 
     class Meta:
         verbose_name_plural = "Faculties"
 
     def __str__(self):
-        return self.user.username
+        return f"{self.user.username} - {self.get_department_display()}"
 
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

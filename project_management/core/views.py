@@ -114,3 +114,79 @@ def student_dashboard(request):
     return render(request, 'core/student_dashboard.html', {
         'projects': projects
     })
+    
+    
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
+
+def department_selection(request):
+    departments = Faculty.DEPARTMENT_CHOICES
+    return render(request, 'core/department_selection.html', {
+        'departments': departments
+    })
+
+def department_projects(request, department_code):
+    department_name = dict(Faculty.DEPARTMENT_CHOICES)[department_code]
+    projects = Project.objects.filter(
+        student__faculty__department=department_code
+    ).order_by('-created_at')
+    
+    return render(request, 'core/department_projects.html', {
+        'department_name': department_name,
+        'projects': projects
+    })
+
+@login_required
+def delete_project(request, project_id):
+    if request.method == 'POST':
+        project = get_object_or_404(Project, id=project_id, student=request.user.student)
+        project.delete()
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=405)
+
+@login_required
+def student_dashboard(request):
+    if not hasattr(request.user, 'student'):
+        messages.error(request, "You don't have student permissions.")
+        return redirect('home')
+    
+    student = request.user.student
+    projects = Project.objects.filter(student=student).order_by('-created_at')
+    
+    if request.method == 'POST':
+        try:
+            project_id = request.POST.get('project_id')
+            title = request.POST.get('title')
+            description = request.POST.get('description')
+            video = request.FILES.get('video')
+            
+            if project_id:  # Editing existing project
+                project = get_object_or_404(Project, id=project_id, student=student)
+                project.title = title
+                project.description = description
+                if video:
+                    project.video = video
+                project.save()
+                messages.success(request, "Project updated successfully!")
+            else:  # Creating new project
+                if not video:
+                    messages.error(request, "Video is required for new projects.")
+                    return redirect('dashboard')
+                    
+                Project.objects.create(
+                    student=student,
+                    title=title,
+                    description=description,
+                    video=video
+                )
+                messages.success(request, "Project uploaded successfully!")
+            
+            return redirect('dashboard')
+            
+        except Exception as e:
+            messages.error(request, f"Error: {str(e)}")
+            return redirect('dashboard')
+    
+    return render(request, 'core/student_dashboard.html', {
+        'projects': projects
+    })

@@ -1,0 +1,24 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12 text-center mb-4">
+            <h2>Browse Projects by Department</h2>
+        </div>
+    </div>
+    <div class="row justify-content-center">
+        {% for dept_code, dept_name in departments %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h3 class="card-title">{{ dept_name }}</h3>
+                    <p class="card-text">Browse projects from {{ dept_name }} department</p>
+                    <a href="{% url 'department_projects' dept_code %}" class="btn btn-primary">View Projects</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,14 +1,31 @@
 {% extends 'core/base.html' %}
 
 {% block content %}
-<div class="text-center">
-    <h1>Welcome to Project Management System</h1>
-    {% if user.is_authenticated %}
-        <p>Welcome back, {{ user.get_full_name }}!</p>
-        <a href="{% url 'dashboard' %}" class="btn btn-primary">Go to Dashboard</a>
-    {% else %}
-        <p>Please login to continue.</p>
-        <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
-    {% endif %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h1 class="mb-4">Welcome to Project Management System</h1>
+            <div class="row mt-5">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Login</h5>
+                            <p class="card-text">Access your account to manage projects</p>
+                            <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Browse as Guest</h5>
+                            <p class="card-text">View projects by department</p>
+                            <a href="{% url 'department_selection' %}" class="btn btn-secondary">Continue as Guest</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

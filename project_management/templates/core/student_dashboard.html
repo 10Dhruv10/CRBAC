@@ -10,8 +10,9 @@
                     <h3 class="mb-0">Upload Project</h3>
                 </div>
                 <div class="card-body">
-                    <form method="post" enctype="multipart/form-data">
+                    <form method="post" enctype="multipart/form-data" id="projectForm">
                         {% csrf_token %}
+                        <input type="hidden" name="project_id" id="projectId">
                         <div class="mb-3">
                             <label for="title" class="form-label">Project Title</label>
                             <input type="text" class="form-control" id="title" name="title" required>
@@ -22,9 +23,11 @@
                         </div>
                         <div class="mb-3">
                             <label for="video" class="form-label">Upload Video</label>
-                            <input type="file" class="form-control" id="video" name="video" accept="video/*" required>
+                            <input type="file" class="form-control" id="video" name="video" accept="video/*">
+                            <small class="text-muted">Leave empty to keep existing video when editing</small>
                         </div>
-                        <button type="submit" class="btn btn-primary">Submit Project</button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">Submit Project</button>
+                        <button type="button" class="btn btn-secondary d-none" id="cancelBtn" onclick="resetForm()">Cancel Edit</button>
                     </form>
                 </div>
             </div>
@@ -37,7 +40,13 @@
                 <div class="card-body">
                     {% for project in projects %}
                     <div class="project-item mb-4">
-                        <h4>{{ project.title }}</h4>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h4>{{ project.title }}</h4>
+                            <div>
+                                <button class="btn btn-sm btn-warning" onclick="editProject({{ project.id }}, '{{ project.title|escapejs }}', '{{ project.description|escapejs }}')">Edit</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteProject({{ project.id }})">Delete</button>
+                            </div>
+                        </div>
                         <div class="description mb-3">
                             <strong>Description:</strong>
                             <p>{{ project.description }}</p>
@@ -64,4 +73,38 @@
         </div>
     </div>
 </div>
+
+<script>
+function editProject(id, title, description) {
+    document.getElementById('projectId').value = id;
+    document.getElementById('title').value = title;
+    document.getElementById('description').value = description;
+    document.getElementById('submitBtn').textContent = 'Update Project';
+    document.getElementById('cancelBtn').classList.remove('d-none');
+    document.getElementById('video').required = false;
+}
+
+function resetForm() {
+    document.getElementById('projectForm').reset();
+    document.getElementById('projectId').value = '';
+    document.getElementById('submitBtn').textContent = 'Submit Project';
+    document.getElementById('cancelBtn').classList.add('d-none');
+    document.getElementById('video').required = true;
+}
+
+function deleteProject(id) {
+    if (confirm('Are you sure you want to delete this project?')) {
+        fetch(`/delete-project/${id}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+            }
+        });
+    }
+}
+</script>
 {% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <h2>{{ department_name }} Projects</h2>
+            <a href="{% url 'department_selection' %}" class="btn btn-secondary">Back to Departments</a>
+        </div>
+    </div>
+    <div class="row">
+        {% if projects %}
+            {% for project in projects %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ project.title }}</h5>
+                        <p class="card-text">{{ project.description|truncatechars:100 }}</p>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#projectModal{{ project.id }}">
+                            View Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal for project details -->
+            <div class="modal fade" id="projectModal{{ project.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">{{ project.title }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p><strong>Description:</strong></p>
+                            <p>{{ project.description }}</p>
+                            {% if project.video %}
+                            <div class="video-container mt-3">
+                                <video width="100%" controls>
+                                    <source src="{{ project.video.url }}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+                            {% endif %}
+                            <p class="text-muted mt-3">
+                                Uploaded by: {{ project.student.user.username }}<br>
+                                Date: {{ project.created_at|date:"F d, Y" }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    No projects available for this department yet.
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
